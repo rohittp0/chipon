@@ -3,10 +3,11 @@ import numpy as np
 
 class Linear:
     @classmethod
-    def layer_from(cls, layer):
-        return cls(layer.in_features, layer.out_features, layer.weight.detach().numpy().T, layer.bias.detach().numpy())
+    def layer_from(cls, layer, index: int):
+        return cls(layer.in_features, layer.out_features, layer.weight.detach().numpy().T, layer.bias.detach().numpy(),
+                   index)
 
-    def __init__(self, in_features: int, out_features: int, weight: np.ndarray = None, bias: np.ndarray = None):
+    def __init__(self, in_features: int, out_features: int, weight: np.ndarray, bias: np.ndarray, index: int):
         self.in_features = in_features
         self.out_features = out_features
 
@@ -15,7 +16,8 @@ class Linear:
 
         self.verify_weights()
 
-        self.name = 'linear' + str(self.in_features) + '_' + str(self.out_features)
+        self.name = f'layer_{index}_linear_{str(self.in_features)}_{str(self.out_features)}'
+        self.shape = (self.in_features, self.out_features)
 
     def __str__(self):
         return f'Linear({self.in_features} -> {self.out_features})'
@@ -51,13 +53,17 @@ module {self.name}(in, out);
     input [{self.in_features - 1}:0] in;
     output [{self.out_features - 1}:0] out;
     
-    wire [{self.out_features - 1}:0] mul;
-    wire [{self.out_features - 1}:0] add;
+    reg [{self.out_features - 1}:0] mul;
+    reg [{self.out_features - 1}:0] add;
+    
+    reg [{self.out_features - 1}:0] out;
     
     always @(in)
     begin
         {'        '.join(multiply_weight)}
         {'        '.join(add_bias)}
+        
+        out = add;
     end
 endmodule
 """
